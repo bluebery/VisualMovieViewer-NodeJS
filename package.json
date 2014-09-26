@@ -1,0 +1,15 @@
+{
+  "name": "VMV_NodeJS",
+  "version": "0.0.0",
+  "description": "VMV-NodeJS",
+  "main": "app.js",
+  "author": {
+    "name": "Bluebery",
+    "email": ""
+  },
+  "dependencies": {
+    "express": "3.4.4",
+    "jade": "*",
+    "stylus": "*"
+  }
+}
