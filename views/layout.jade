@@ -1,7 +1,57 @@
 ﻿doctype html
+block vars
 html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+	head
+		// or title= title
+		title #{title} 
+		link(rel='stylesheet', href='/stylesheets/style.css')
+		link(rel='stylesheet', href='/stylesheets/bootstrap.css')
+		script(src="/javascripts/jquery-1.11.1.min.js")
+		script(src="/javascripts/bootstrap.min.js")
+		script(src="/javascripts/main.js")
+	body
+		nav(class="navbar navbar-default" role="navigation")
+			div(class="container-fluid")
+				div(class="navbar-header")
+					button(type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1")
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					a(class="navbar-brand" href="#") VisualMovieViewer
+				div(class="collapse navbar-collapse" id="bs-example-navbar-collapse-1")
+					ul(id="navbar" class="nav navbar-nav")
+						li(id="NavButtonView" class='#{navButtonViewClass}') 
+							a(href="/") View
+						li(id="NavButtonModify" class='#{navButtonModifyClass}')
+							a(href="/modifymovielanding") Modify
+						li(id="NavButtonRemove" class='#{navButtonRemoveClass}')
+							a(href="/removemovie") Remove
+						li(class="dropdown")
+							a(href="#" class="dropdown-toggle" data-toggle="dropdown") Sort By 
+								span(class="caret")
+							ul(class="dropdown-menu" role="menu")
+								li 
+									a(href="#") Title
+								li 
+									a(href="#") Rating
+					form(class="navbar-form navbar-right" role="search")
+						div(class="form-group")
+							input(type="text" class="form-control" placeholder="Search")
+						button(type="submit" class="btn btn-default") Search / Directory
+					ul(class="nav navbar-nav navbar-right")
+						li
+							a(href="#") Link
+						li(class="dropdown")
+							a(href="#" class="dropdown-toggle" data-toggle="dropdown") Dropdown <span class="caret"></span></a>
+							ul(class="dropdown-menu" role="menu")
+								li 
+									a(href="#") Action
+								li 
+									a(href="#") Another action
+								li 
+									a(href="#") Something else here
+								li(class="divider")
+								li
+									a(href="#") Separated link
+		block content
