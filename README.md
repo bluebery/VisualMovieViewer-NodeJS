@@ -1,3 +1,3 @@
-﻿# VMV-NodeJS
+﻿# VisualMovieViewer-NodeJS
 
 
