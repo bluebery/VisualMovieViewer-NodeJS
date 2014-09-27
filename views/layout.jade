@@ -8,8 +8,9 @@ html
 		link(rel='stylesheet', href='/stylesheets/bootstrap.css')
 		script(src="/javascripts/jquery-1.11.1.min.js")
 		script(src="/javascripts/bootstrap.min.js")
+		script(src="/socket.io/socket.io.js")
 		script(src="/javascripts/main.js")
-	body
+	body(onload='#{onloadFunction}')
 		nav(class="navbar navbar-default" role="navigation")
 			div(class="container-fluid")
 				div(class="navbar-header")

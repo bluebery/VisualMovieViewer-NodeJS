@@ -7,10 +7,12 @@ var express = require('express');
 var routes = require('./routes');
 var user = require('./routes/user');
 var movie = require('./routes/movie');
-var http = require('http');
+
 var path = require('path');
 
 var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -35,6 +37,10 @@ app.get('/users', user.list);
 app.get('/modifymovielanding', movie.modifymovielanding);
 app.get('/removemovie', movie.removemovie);
 
-http.createServer(app).listen(app.get('port'), function(){
+// Main class for socket.io communication with the client javascript;
+// since the client will initiate requests, this is where they all get dispatched from.
+var socketcommunication = require('./socketcommunication.js')(io);
+
+http.listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

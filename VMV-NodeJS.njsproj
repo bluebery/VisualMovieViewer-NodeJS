@@ -38,6 +38,7 @@
     <Compile Include="routes\index.js" />
     <Compile Include="routes\movie.js" />
     <Compile Include="routes\user.js" />
+    <Compile Include="socketcommunication.js" />
     <Content Include="package.json" />
     <Content Include="public\stylesheets\bootstrap-theme.css" />
     <Content Include="public\stylesheets\bootstrap-theme.css.map" />
