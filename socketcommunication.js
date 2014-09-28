@@ -7,22 +7,11 @@ function SocketCommunication(io) {
 		
 		console.log('a user connected, creating socket object for them');
 		
-		new ClientSocketCommunication(socket);
-	});
-}
-
-/* Main class for handling incoming and outgoing socket communication with a particular client, once connected  */
-function ClientSocketCommunication(socket) {
-	
-	this.count = 0;
-	var self = this;
-
-	socket.on('GetMovieList', function () {
-		socket.emit('MoviesListUpdated', { counter: self.count });
-		self.count++;
-	});
-	
-	socket.on('disconnect', function () {
-		console.log('user disconnected');
+		socket.on('disconnect', function () {
+			console.log('user disconnected');
+		});
+		
+		var servermain = new (require('./servermain.js'))(); // imports servermain.js and then calls the constructor on it into a new object
+		servermain.HandleEvents(socket);
 	});
 }

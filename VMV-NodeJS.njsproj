@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.js" />
+    <Compile Include="databaseinterface.js" />
     <Compile Include="public\javascripts\bootstrap.js" />
     <Compile Include="public\javascripts\bootstrap.min.js" />
     <Compile Include="public\javascripts\jquery-1.11.1.min.js" />
@@ -38,6 +39,7 @@
     <Compile Include="routes\index.js" />
     <Compile Include="routes\movie.js" />
     <Compile Include="routes\user.js" />
+    <Compile Include="servermain.js" />
     <Compile Include="socketcommunication.js" />
     <Content Include="package.json" />
     <Content Include="public\stylesheets\bootstrap-theme.css" />
