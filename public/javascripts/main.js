@@ -10,9 +10,8 @@
 var socket;
 
 function InitializeFormContent() {
-	socket = io();
-	
 
+	socket = io();
 	
 	$('#buttonthing').click(function () {
 		socket.emit('GetMovieList');
