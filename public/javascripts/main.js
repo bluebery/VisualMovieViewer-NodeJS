@@ -19,9 +19,9 @@ function InitializeFormContent() {
 
 	// put this in a function call back? does the event happen outside of our request? doubtful
 	// take the list of movies in data and display them accordingly
-	socket.on('MoviesListUpdated', function(data)
-	{
-		console.log(data.movieList);
+	socket.on('MoviesListUpdated', function(err, data) {
+		if (err) { console.log(err) }
+		else { console.log(data); }
 	});
 
 	socket.emit('GetMovieList');

@@ -7,7 +7,7 @@ function DatabaseInterface() {
 
 }
 
-DatabaseInterface.prototype.EstablishConnection = function (connectionString) {
+DatabaseInterface.prototype.EstablishConnection = function (connectionString, replyFn) {
 	
 	var config = {
 		user: 'movieviewer',
@@ -20,24 +20,20 @@ DatabaseInterface.prototype.EstablishConnection = function (connectionString) {
 		}
 	}
 	
-	return config;
+	var connection = new sql.Connection(config, function (err) {
+		if (err) { if (replyFn) { replyFn(err, null); } return; }
+		if (replyFn) { replyFn(null, connection); }
+	});
 
 	// https://github.com/patriksimek/node-mssql
 }
 
-DatabaseInterface.prototype.ReadAllMovies = function (config, databaseTable, replyFn) {
-	var connection = new sql.Connection(config, function (err) {
-		// ... error checks
+DatabaseInterface.prototype.ReadAllMovies = function (connection, databaseTable, replyFn) {
 		
-		// Query
-		
-		var request = new sql.Request(connection); // or: var request = connection.request();
+	var request = new sql.Request(connection); // or: var request = connection.request();
 
-		request.query('select * from ' + databaseTable, function (err, recordset) {
-			// ... error checks
-			
-			if (replyFn) { replyFn({ movieList: recordset }); }
-		});
-
+	request.query('select * from ' + databaseTable, function (err, recordset) {
+		if (err) { if (replyFn) { replyFn(err, null); } return; }
+		if (replyFn) { replyFn(null, recordset); }
 	});
 }
