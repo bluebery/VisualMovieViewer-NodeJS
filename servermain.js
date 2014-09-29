@@ -57,7 +57,7 @@ function GetMovieList(self, replyFn) {
 						}
 					}
 				}
-				
+			
 				if (replyFn) { replyFn(null, moviesActive); }
 			});
 		});

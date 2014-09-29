@@ -21,7 +21,12 @@ function InitializeFormContent() {
 	// take the list of movies in data and display them accordingly
 	socket.on('MoviesListUpdated', function(err, data) {
 		if (err) { console.log(err) }
-		else { console.log(data); }
+		else {
+			console.log(data);
+			for (var i = 0; i < data.length; i++) {
+				document.getElementById("content").innerHTML += data[i].Name + '<br>';
+			}
+		}
 	});
 
 	socket.emit('GetMovieList');
