@@ -51,9 +51,7 @@ function GetMovieList(self, replyFn) {
 							
 							console.log(movieCustom);
 							
-							// todo - we continue iterating over things we have pushed to the back ... don't want to do this
-							moviesActive.splice(i, 1); // remote item from active array (i being movieActive)
-							moviesActive.push(movieCustom); // insert item from custom array
+							moviesActive[i] = movieCustom; // override the entire active movie with the custom one
 						}
 					}
 				}
