@@ -13,7 +13,7 @@ function InitializeFormContent() {
 	// take the list of movies in data and display them accordingly
 	socket.on('MoviesListUpdated', function(err, data) {
 		if (err) { console.log(err) }
-		else {
+		else{ 
 			movieList = data;
 			DisplayMovies();
 		}
@@ -23,8 +23,11 @@ function InitializeFormContent() {
 }
 
 function AssociateClickHandlers() {
+	
+	// testing button
 	$('#buttonthing').click(function () {
-		socket.emit('GetMovieList');
+		//socket.emit('GetMovieList');
+		socket.emit('ReadDirectory', { server: 'blackbery', directory: 'movies test' } );
 	});
 	
 	$('#SortByTitle').click(function () {
@@ -35,29 +38,46 @@ function AssociateClickHandlers() {
 	$('#SortByRating').click(function () {
 		sortByTitle = false;
 		DisplayMovies();
-	});	
+	});
+	
+	$('#searchButton').click(function () {
+		if (document.getElementById("searchBox").value == 'test') {
+			socket.emit('GetMovieList');
+		}
+		else { 
+			var x = 0;
+		}
+	});
 }
 
-// temporary function to display rudimentary movie information for debugging (textual)
+// temporary function to display rudimentary movie information for debugging 
 function DisplayMovies() {
 	
-	if (sortByTitle) { movieList.sort(SortMovieNamesAZ); }
+	if (sortByTitle) { movieList.sort(SortMovieNameAZ); }
 	else { movieList.sort(SortMovieRating1000); }
 
 	document.getElementById("content").innerHTML = ''; // clear our page
 
 	for (var i = 0; i < movieList.length; i++) {
-		document.getElementById("content").innerHTML += movieList[i].Name + '<br>' + movieList[i].Description + '<br>' + movieList[i].Rating + '<br><br>';
+		document.getElementById("content").innerHTML += movieList[i].Name + '<br>' + movieList[i].Description + '<br>' + movieList[i].Rating + '<br>' + movieList[i].ImageUrl + '<br><br>';
+		
+	// write images test
+	/*
+		var img = document.createElement('img');
+		img.setAttribute('src', movieList[i].ImageUrl);
+		img.setAttribute('alt', 'asfd');
+		document.getElementById("divcontent").appendChild(img);
+	 */
 	}
 }
 
-SortMovieNamesAZ = function (a, b) {
+SortMovieNameAZ = function (a, b) {
 	if (a.Name > b.Name) { return 1; }
 	else if (a.Name < b.Name) { return -1; }
 	else { return 0; }
 }
 
-SortMovieNamesZA = function (a, b) {
+SortMovieNameZA = function (a, b) {
 	if (a.Name < b.Name) { return 1; }
 	else if (a.Name > b.Name) { return -1; }
 	else { return 0; }

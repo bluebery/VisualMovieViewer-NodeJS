@@ -1,4 +1,6 @@
 ﻿
+var filesystem = require('fs');
+
 module.exports = exports = ServerMain;
 
 function ServerMain() {
@@ -13,14 +15,28 @@ ServerMain.prototype.HandleEvents = function(socket) {
 	
 	// Once the client requests the movie list, call our helper function to retrieve it
 	socket.on('GetMovieList', function () {
-		GetMovieList(self, function (err, data) {
+		GetActiveMovieList(self, function (err, data) {
 			socket.emit('MoviesListUpdated', err, data);
+		});
+	});
+
+	socket.on('ReadDirectory', function (data) {
+		GetMoviesFromDirectory(self, data.server, data.directory, function (err, data) {
+			// decide what to do here
 		});
 	});	
 }
 
+// Template for function to retreive movie names from shared directory
+// this is actually the first step in creating movie objects to be written to db when a new path is entered
+function GetMoviesFromDirectory(self, server, directory, replyFn) {
+	filesystem.readdir('\\\\' + server + '\\' + directory, function (err, files) {
+		var x = files;
+	});
+}
+
 // Helper function to retreive the active movie list from the db 
-function GetMovieList(self, replyFn) {
+function GetActiveMovieList(self, replyFn) {
 	
 	var connectionString = "";
 	var activeMovieListTableName = "MoviesActive";

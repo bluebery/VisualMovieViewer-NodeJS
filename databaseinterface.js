@@ -28,11 +28,13 @@ DatabaseInterface.prototype.EstablishConnection = function (connectionString, re
 	// https://github.com/patriksimek/node-mssql
 }
 
+// Does not read [ImageData] for performance reasons
 DatabaseInterface.prototype.ReadAllMovies = function (connection, databaseTable, replyFn) {
 		
 	var request = new sql.Request(connection); // or: var request = connection.request();
-
-	request.query('select * from ' + databaseTable, function (err, recordset) {
+	
+	request.query('select [Id], [Name], [Url], [ImageUrl], [OriginalPath], [Description], [Rating], [ReleaseDate], [Genre] from ' + databaseTable, function (err, recordset) {
+	//request.query('select * from ' + databaseTable, function (err, recordset) {
 		if (err) { if (replyFn) { replyFn(err, null); } return; }
 		if (replyFn) { replyFn(null, recordset); }
 	});
