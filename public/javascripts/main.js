@@ -27,7 +27,7 @@ function AssociateClickHandlers() {
 	// testing button
 	$('#buttonthing').click(function () {
 		//socket.emit('GetMovieList');
-		socket.emit('ReadDirectory', { server: 'blackbery', directory: 'movies test' } );
+		socket.emit('ReadDirectory', 'blackbery', 'movies test' );
 	});
 	
 	$('#SortByTitle').click(function () {
