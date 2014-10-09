@@ -39,3 +39,12 @@ DatabaseInterface.prototype.ReadAllMovies = function (connection, databaseTable,
 		if (replyFn) { replyFn(null, recordset); }
 	});
 }
+
+DatabaseInterface.prototype.ClearAll = function (connection, databaseTable, replyFn) {
+	var request = new sql.Request(connection); // or: var request = connection.request();
+	
+	request.query('delete from ' + databaseTable, function (err, recordset) {
+		if (err) { if (replyFn) { replyFn(err, null); } return; }
+		if (replyFn) { replyFn(null, recordset); }
+	});
+}

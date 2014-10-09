@@ -24,11 +24,14 @@ ServerMain.prototype.HandleEvents = function(socket) {
 	socket.on('ReadDirectory', function (server, directory) {
 		GetMoviesFromDirectory(self, server, directory, function (err, data) {
 			// data now contains the list of movie objects (intialized with name and path)
-			// now we check which of these we already have in master and write to active, 
-			// & data from imdb to write to active (if not in master)
-			// this involves clearing (or appending) to active depending on user selection
 		});
-	});	
+	});
+
+	socket.on('RefreshActiveDatabase', function (server, directory, overloadDirectories) {
+		RefreshActiveDatabase(self, server, directory, overloadDirectories, function (err, data) {
+
+		});
+	});
 }
 
 // Template for function to retreive movie names from shared directory
@@ -58,6 +61,89 @@ function GetMoviesFromDirectory(self, server, directory, replyFn) {
 
 		if (replyFn) { replyFn(null, movieList); }
 	});
+}
+
+function RefreshActiveDatabase(self, server, directory, overloadDirectories, replyFn) {
+	
+	var connectionString = "";
+	var activeMovieListTableName = "MoviesActive";
+	var customMovieListTableName = "MoviesCustom";
+	var masterMovieListTableName = "MoviesMaster";
+	var db = self.databaseInterface;
+
+	GetMoviesFromDirectory(self, server, directory, function (err, movieList) {
+		// data now contains the list of movie objects (intialized with name and path)
+		// now we check which of these we already have in master and write to active, 
+		// & data from imdb to write to active (if not in master)
+		// this involves clearing (or appending) to active depending on user selection
+		
+		// inside here we check whether this is actually required to be cleared - a bit unclear when written like this!
+		ClearActiveDatabase(self, overloadDirectories, function (err) {
+			if (err) { if (replyFn) { replyFn(err, null); } return; }
+			
+			// get the list of movies from the master database and copy over to active if the name matches one in our current directory
+			// todo: can't we just do a query on movie name?? (lots of individual queries :()
+			GetMasterMovieList(self, function (err, moviesMaster) {
+				if (err) { if (replyFn) { replyFn(err, null); } return; }
+
+				for (var i = 0; i < movieList.length; i++) {
+
+					var containedInMaster = false;
+					// todo: check if we already have this in our active
+
+					for (var j = 0; j < moviesMaster.length; j++) {
+						
+						var movie = movieList[i];
+						var movieFromMaster = moviesMaster[j];
+
+						if (movie.Name == movieFromMaster.Name) {
+							containedInMaster = true;
+
+							movie.Image = movieFromMaster.Image;
+							movie.Url = movieFromMaster.Url;
+							movie.ImageUrl = movieFromMaster.ImageUrl;
+							movie.Description = movieFromMaster.Description;
+							movie.Rating = movieFromMaster.Rating;
+							movie.ReleaseDate = movieFromMaster.ReleaseDate;
+							movie.Genre = movieFromMaster.Genre;
+							movie.Id = movieFromMaster.Id;
+
+							WriteMovieToActiveDatabase(movie, function (err) {
+
+							});
+
+							break; // break here to stop searching once we have found the movie inside the master db
+						}
+					}
+
+					if (!containedInMaster) {
+						// do something with IDs, and then get information from TMDb and write to active
+					}
+				}
+			});
+		});
+	});
+}
+
+// Async wrapper around overloaddirectories decision; clears active database if false
+function ClearActiveDatabase(self, overloadDirectories, replyFn) {
+	
+	var connectionString = "";
+	var activeMovieListTableName = "MoviesActive";
+	var customMovieListTableName = "MoviesCustom";
+	var db = self.databaseInterface;
+
+	if (!overloadDirectories) {
+		db.EstablishConnection(connectionString, function (err, connection) {
+			if (err) { if (replyFn) { replyFn(err); } return; }
+			
+			db.ClearAll(connection, activeMovieListTableName, function (err, data) {
+				if (err) { if (replyFn) { replyFn(err); } return; }
+				if (replyFn) { replyFn(null); }
+			});
+		});
+	}
+	else { if (replyFn) { replyFn(null); } }
 }
 
 // Helper function to retreive the active movie list from the db 
@@ -97,4 +183,27 @@ function GetActiveMovieList(self, replyFn) {
 			});
 		});
 	});
+}
+
+// Helper function to retreive the active movie list from the db 
+function GetMasterMovieList(self, replyFn) {
+	
+	var connectionString = "";
+	var masterMovieListTableName = "MoviesMaster";
+	var db = self.databaseInterface;
+	
+	db.EstablishConnection(connectionString, function (err, connection) {
+		if (err) { if (replyFn) { replyFn(err, null); } return; }
+		
+		db.ReadAllMovies(connection, masterMovieListTableName, function (err, moviesMaster) {
+			if (err) { if (replyFn) { replyFn(err, null); } return; }
+			
+			if (replyFn) { replyFn(null, moviesMaster); }
+		});
+	});
+}
+
+// todo implement
+function WriteMovieToActiveDatabase(self, replyFn) {
+
 }
