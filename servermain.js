@@ -10,6 +10,12 @@ function ServerMain() {
 	this.databaseInterface = new (require('./databaseinterface.js'))();
 }
 
+ServerMain.prototype.ConnectDatabase = function (replyFn) {
+	this.databaseInterface.EstablishConnection('', function (err) {
+		replyFn(null);
+	});
+}
+
 ServerMain.prototype.HandleEvents = function(socket) {
 	
 	var self = this; // can use this if we need globals in our instanced servermain (this) object
@@ -28,7 +34,7 @@ ServerMain.prototype.HandleEvents = function(socket) {
 	});
 
 	socket.on('RefreshActiveDatabase', function (server, directory, overloadDirectories) {
-		RefreshActiveDatabase(self, server, directory, overloadDirectories, function (err, data) {
+		RefreshActiveDatabase(self, server, directory, overloadDirectories, function (err) {
 
 		});
 	});
@@ -65,7 +71,6 @@ function GetMoviesFromDirectory(self, server, directory, replyFn) {
 
 function RefreshActiveDatabase(self, server, directory, overloadDirectories, replyFn) {
 	
-	var connectionString = "";
 	var activeMovieListTableName = "MoviesActive";
 	var customMovieListTableName = "MoviesCustom";
 	var masterMovieListTableName = "MoviesMaster";
@@ -79,12 +84,12 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 		
 		// inside here we check whether this is actually required to be cleared - a bit unclear when written like this!
 		ClearActiveDatabase(self, overloadDirectories, function (err) {
-			if (err) { if (replyFn) { replyFn(err, null); } return; }
+			if (err) { replyFn(err); return; }
 			
 			// get the list of movies from the master database and copy over to active if the name matches one in our current directory
 			// todo: can't we just do a query on movie name?? (lots of individual queries :()
 			GetMasterMovieList(self, function (err, moviesMaster) {
-				if (err) { if (replyFn) { replyFn(err, null); } return; }
+				if (err) { replyFn(err); return; }
 
 				for (var i = 0; i < movieList.length; i++) {
 
@@ -108,8 +113,8 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 							movie.Genre = movieFromMaster.Genre;
 							movie.Id = movieFromMaster.Id;
 
-							WriteMovieToActiveDatabase(movie, function (err) {
-
+							WriteMovieToActiveDatabase(self, movie, function (err) {
+								if (err) { replyFn(err); return; }
 							});
 
 							break; // break here to stop searching once we have found the movie inside the master db
@@ -128,82 +133,69 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 // Async wrapper around overloaddirectories decision; clears active database if false
 function ClearActiveDatabase(self, overloadDirectories, replyFn) {
 	
-	var connectionString = "";
 	var activeMovieListTableName = "MoviesActive";
-	var customMovieListTableName = "MoviesCustom";
 	var db = self.databaseInterface;
 
 	if (!overloadDirectories) {
-		db.EstablishConnection(connectionString, function (err, connection) {
-			if (err) { if (replyFn) { replyFn(err); } return; }
-			
-			db.ClearAll(connection, activeMovieListTableName, function (err, data) {
-				if (err) { if (replyFn) { replyFn(err); } return; }
-				if (replyFn) { replyFn(null); }
-			});
+		db.ClearAll(activeMovieListTableName, function (err, data) {
+			if (err) { replyFn(err); return; }
+			replyFn(null);
 		});
 	}
-	else { if (replyFn) { replyFn(null); } }
+	else { replyFn(null); }
 }
 
 // Helper function to retreive the active movie list from the db 
 function GetActiveMovieList(self, replyFn) {
 	
-	var connectionString = "";
 	var activeMovieListTableName = "MoviesActive";
 	var customMovieListTableName = "MoviesCustom";
 	var db = self.databaseInterface;
-
-	db.EstablishConnection(connectionString, function (err, connection) {
-		if (err) { if (replyFn) { replyFn(err, null); } return; }
 		
-		db.ReadAllMovies(connection, activeMovieListTableName, function (err, moviesActive) {
-			if (err) { if (replyFn) { replyFn(err, null); } return; }
+	db.ReadAllMovies(activeMovieListTableName, function (err, moviesActive) {
+		if (err) { replyFn(err, null); return; }
 			
-			db.ReadAllMovies(connection, customMovieListTableName, function (err, moviesCustom) {
-				if (err) { if (replyFn) { replyFn(err, moviesActive); } return; }
+		db.ReadAllMovies(customMovieListTableName, function (err, moviesCustom) {
+			if (err) { replyFn(err, moviesActive); return; }
 				
-				for (var i = 0; i < moviesActive.length; i++) {
-					for (var j = 0; j < moviesCustom.length; j++) {
+			for (var i = 0; i < moviesActive.length; i++) {
+				for (var j = 0; j < moviesCustom.length; j++) {
 						
-						var movieActive = moviesActive[i];
-						var movieCustom = moviesCustom[j];
+					var movieActive = moviesActive[i];
+					var movieCustom = moviesCustom[j];
 						
-						if (movieActive.Name == movieCustom.Name) {
+					if (movieActive.Name == movieCustom.Name) {
 
-							movieCustom.Id = movieActive.Id; // override the ID of the custom to that of the active...  so that the image has the correct filename in CacheImagery..
-							movieCustom.OriginalPath = movieActive.OriginalPath; // override the original path since custom does not know this attribute
+						movieCustom.Id = movieActive.Id; // override the ID of the custom to that of the active...  so that the image has the correct filename in CacheImagery..
+						movieCustom.OriginalPath = movieActive.OriginalPath; // override the original path since custom does not know this attribute
 
-							moviesActive[i] = movieCustom; // override the entire active movie with the custom one
-						}
+						moviesActive[i] = movieCustom; // override the entire active movie with the custom one
 					}
 				}
+			}
 			
-				if (replyFn) { replyFn(null, moviesActive); }
-			});
+			replyFn(null, moviesActive);
 		});
 	});
 }
 
 // Helper function to retreive the active movie list from the db 
 function GetMasterMovieList(self, replyFn) {
-	
-	var connectionString = "";
 	var masterMovieListTableName = "MoviesMaster";
 	var db = self.databaseInterface;
-	
-	db.EstablishConnection(connectionString, function (err, connection) {
-		if (err) { if (replyFn) { replyFn(err, null); } return; }
-		
-		db.ReadAllMovies(connection, masterMovieListTableName, function (err, moviesMaster) {
-			if (err) { if (replyFn) { replyFn(err, null); } return; }
-			
-			if (replyFn) { replyFn(null, moviesMaster); }
-		});
+
+	db.ReadAllMovies(masterMovieListTableName, function (err, moviesMaster) {
+		if (err) { replyFn(err, null); return; }
+		replyFn(null, moviesMaster);
 	});
 }
 
-// todo implement
-function WriteMovieToActiveDatabase(self, replyFn) {
-
+function WriteMovieToActiveDatabase(self, movie, replyFn) {
+	var activeMovieListTableName = "MoviesActive";
+	var db = self.databaseInterface;
+	
+	db.WriteMovie(activeMovieListTableName, movie, function (err) {
+		if (err) { replyFn(err); return; }
+		replyFn(null);
+	});
 }
