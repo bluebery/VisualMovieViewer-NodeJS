@@ -4,19 +4,20 @@
 	
 	it('should connect to db', function (done) {
 		var db = new (require('./../databaseinterface.js'))();
-		db.EstablishConnection('', function (err, connection) {
+		db.EstablishConnection('', function (err) {
 			expect(err).toBe(null);
-			expect(connection).not.toBe(null);
+			expect(db.connection).not.toBe(null);
 			
 			/*
-			db.ReadAllMovies(connection, activeMovieListTableName, function (err, MoviesActive) {
-				//expect(err).toBe(null);
-				//expect(moviesActive.length).toBeGreaterThan(0);
-				//expect(moviesActive[0].Name).not.toBe(null);
+			db.ReadAllMovies(activeMovieListTableName, function (err, MoviesActive) {
+				console.log('something3');
+				expect(err).toBe(null);
+				expect(moviesActive.length).toBeGreaterThan(0);
+				expect(moviesActive[0].Name).not.toBe(null);
 			});
-			 */
-
-			connection.close();
+			*/ 
+			 
+			db.connection.close();
 			done();
 		});
 	});
