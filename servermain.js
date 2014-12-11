@@ -46,9 +46,32 @@ ServerMain.prototype.HandleEvents = function(socket) {
 // this is actually the first step in creating movie objects to be written to db when a new path is entered
 // i.e. we create a movie object with the name and original path and add it to a list
 // todo : handle +1 deep directory crawling
-function GetMoviesFromDirectory(self, server, directory, replyFn) {
+function GetMoviesFromDirectory(self, server, rootDirectory, replyFn) {
 	var movieList = new Array();
+	
+	var directories = getDirectories('\\\\' + server + '\\' + rootDirectory);
+	
+	for (var i = 0; i < directories.length; i++) {
+		var subdirectories = getDirectories('\\\\' + server + '\\' + rootDirectory + '\\' + directories[i]);
+		var subMovieFound = false;
+		
+		// a whole set of 2nd level directories
+			for (var j = 0; j < subdirectories.length; j++) {
+				if (CreateMovieObjectFromDirectory(server, rootDirectory + '\\' + directories[i], subdirectories[j], movieList)) {
+					subMovieFound = true;
+				} 
+			}
+		
+		if (!subMovieFound) {
+			CreateMovieObjectFromDirectory(server, rootDirectory, directories[i], movieList); // just one top level directory
+		}
+	}
+	
+	console.log(movieList);
 
+	if (replyFn) { replyFn(null, movieList); }
+
+/*
 	filesystem.readdir('\\\\' + server + '\\' + directory, function (err, files) {
 		if (err) { if (replyFn) { replyFn(err, null); } return; }
 		
@@ -68,6 +91,29 @@ function GetMoviesFromDirectory(self, server, directory, replyFn) {
 		}
 
 		if (replyFn) { replyFn(null, movieList); }
+	});*/
+}
+
+function CreateMovieObjectFromDirectory(server, rootDirectory, directory, movieList) {
+	if (directory.charAt(0) != '_') {
+		var newMovie;
+		
+		var regex = '(.*?)\\s\\(.*'// match content before '[space](' (NON GREEDY)
+		var result = directory.match(regex);
+		
+		if (result == null) { newMovie = new movie(directory, '\\\\' + server + '\\' + rootDirectory + '\\' + directory); }
+		else { newMovie = new movie(result[1], '\\\\' + server + '\\' + rootDirectory + '\\' + directory); }
+		
+		movieList.push(newMovie);
+		
+		return true;
+	}
+	else { return false; }
+}
+
+function getDirectories(path) {
+	return filesystem.readdirSync(path).filter(function (file) {
+		return filesystem.statSync(path + '/' + file).isDirectory();
 	});
 }
 
@@ -123,16 +169,9 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 
 							break; // break here to stop searching once we have found the movie inside the master db
 						}
-
-						if (movieFromMaster.Id > masterUniqueId) {
-							masterUniqueId = movieFromMaster.Id;
-						}
 					}
 
 					if (!containedInMaster) {
-						masterUniqueId++;
-						movie.Id = masterUniqueId;
-						
 						// have to create a new instance of TMDb helper class so that the variable movie
 						// doesn't get stomped as this containing for loop goes around and around without
 						// waiting for the async json calls to return
@@ -141,16 +180,13 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 						tmdb.GetMovieInformation(movie, function (err, movie) {
 							if (err) { console.log(err); }
 							else {
-								
-								/*
 								WriteMovieToActiveDatabase(self, movie, function (err) {
-									if (err) { replyFn(err); return; }
+									if (err) { console.log(err); }
 								});
 								
 								WriteMovieToMasterDatabase(self, movie, function (err) {
-									if (err) { replyFn(err); return; }
-								});		
-								 */				
+									if (err) { console.log(err); }
+								});					
 							} 
 						});
 					}

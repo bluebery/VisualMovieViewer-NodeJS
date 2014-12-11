@@ -28,7 +28,7 @@ function AssociateClickHandlers() {
 	$('#buttonthing').click(function () {
 		//socket.emit('GetMovieList');
 		//socket.emit('ReadDirectory', 'blackbery', 'movies test' );
-		socket.emit('RefreshActiveDatabase', 'blackbery', 'movies test', false);
+		socket.emit('RefreshActiveDatabase', 'blackbery', 'movies 2', false);
 	});
 	
 	$('#SortByTitle').click(function () {

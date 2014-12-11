@@ -6,7 +6,7 @@ function TMDb() {
 }
 
 TMDb.prototype.GetMovieInformation = function (movie, replyFn) {
-
+	
 	MovieDB.searchMovie({ query: movie.Name }, function (err, res) {
 		if (err) { replyFn(err, null); return; }
 		
@@ -21,7 +21,9 @@ TMDb.prototype.GetMovieInformation = function (movie, replyFn) {
 				movie.Description = res.overview;
 				movie.Rating = res.vote_average;
 				movie.ReleaseDate = res.release_date;
-				movie.Genre = res.genres[0].name;
+				if (res.genres.length > 0) { movie.Genre = res.genres[0].name; }
+				else { movie.Genre = "unknown"; }
+				movie.Id = res.id;
 				
 				replyFn(null, movie);
 			});
