@@ -45,10 +45,10 @@ ServerMain.prototype.HandleEvents = function(socket) {
 // Template for function to retreive movie names from shared directory
 // this is actually the first step in creating movie objects to be written to db when a new path is entered
 // i.e. we create a movie object with the name and original path and add it to a list
-// todo : handle +1 deep directory crawling
+// goes +1 level deep to find movie folder names, ignoring those that start with _
 function GetMoviesFromDirectory(self, server, rootDirectory, replyFn) {
+
 	var movieList = new Array();
-	
 	var directories = getDirectories('\\\\' + server + '\\' + rootDirectory);
 	
 	for (var i = 0; i < directories.length; i++) {
@@ -70,28 +70,6 @@ function GetMoviesFromDirectory(self, server, rootDirectory, replyFn) {
 	console.log(movieList);
 
 	if (replyFn) { replyFn(null, movieList); }
-
-/*
-	filesystem.readdir('\\\\' + server + '\\' + directory, function (err, files) {
-		if (err) { if (replyFn) { replyFn(err, null); } return; }
-		
-		// Go through all the results and disclude entries beginning with _
-		for (var i = 0; i < files.length; i++) {
-			if (files[i].charAt(0) != '_') { 
-				var newMovie;
-
-				var regex = '(.*?)\\s\\(.*'// match content before '[space](' (NON GREEDY)
-				var result = files[i].match(regex);
-
-				if (result == null) { newMovie = new movie(files[i], '\\\\' + server + '\\' + directory + '\\' + files[i]); }
-				else { newMovie = new movie(result[1], '\\\\' + server + '\\' + directory + '\\' + files[i]); }
-
-				movieList.push(newMovie);
-			}
-		}
-
-		if (replyFn) { replyFn(null, movieList); }
-	});*/
 }
 
 function CreateMovieObjectFromDirectory(server, rootDirectory, directory, movieList) {
