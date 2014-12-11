@@ -10,6 +10,7 @@
   "dependencies": {
     "express": "3.4.4",
     "jade": "*",
+    "moviedb": "^0.1.9",
     "mssql": "^1.2.0",
     "node-mssql-connector": "^0.2.5",
     "socket.io": "^1.1.0",

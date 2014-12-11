@@ -14,8 +14,9 @@ function SocketCommunication(io) {
 		var servermain = new (require('./servermain.js'))(); // imports servermain.js and then calls the constructor on it into a new object
 		servermain.ConnectDatabase(function (err) {
 			if (err) { console.log('error connecting db'); return; }
-
-			servermain.HandleEvents(socket);
+			
+			// todo: sometimes the database connection takes too long and we miss the clients' messages and fail to handle them; race condition
+			servermain.HandleEvents(socket); 
 		});
 	});
 }

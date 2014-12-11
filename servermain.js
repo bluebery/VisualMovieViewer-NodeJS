@@ -1,6 +1,7 @@
 ﻿
 var filesystem = require('fs');
 var movie = require('./movie.js');
+var TMDb = require('./TMDb.js');
 
 module.exports = exports = ServerMain;
 
@@ -26,7 +27,8 @@ ServerMain.prototype.HandleEvents = function(socket) {
 			socket.emit('MoviesListUpdated', err, data);
 		});
 	});
-
+	
+	// don't really need this, it's part of RefreshActiveDatabase
 	socket.on('ReadDirectory', function (server, directory) {
 		GetMoviesFromDirectory(self, server, directory, function (err, data) {
 			// data now contains the list of movie objects (intialized with name and path)
@@ -94,11 +96,13 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 				for (var i = 0; i < movieList.length; i++) {
 
 					var containedInMaster = false;
+					var masterUniqueId = 0;
+					var movie = movieList[i];
 					// todo: check if we already have this in our active
 
 					for (var j = 0; j < moviesMaster.length; j++) {
 						
-						var movie = movieList[i];
+						
 						var movieFromMaster = moviesMaster[j];
 
 						if (movie.Name == movieFromMaster.Name) {
@@ -119,10 +123,36 @@ function RefreshActiveDatabase(self, server, directory, overloadDirectories, rep
 
 							break; // break here to stop searching once we have found the movie inside the master db
 						}
+
+						if (movieFromMaster.Id > masterUniqueId) {
+							masterUniqueId = movieFromMaster.Id;
+						}
 					}
 
 					if (!containedInMaster) {
-						// do something with IDs, and then get information from TMDb and write to active
+						masterUniqueId++;
+						movie.Id = masterUniqueId;
+						
+						// have to create a new instance of TMDb helper class so that the variable movie
+						// doesn't get stomped as this containing for loop goes around and around without
+						// waiting for the async json calls to return
+						var tmdb = new TMDb();
+
+						tmdb.GetMovieInformation(movie, function (err, movie) {
+							if (err) { console.log(err); }
+							else {
+								
+								/*
+								WriteMovieToActiveDatabase(self, movie, function (err) {
+									if (err) { replyFn(err); return; }
+								});
+								
+								WriteMovieToMasterDatabase(self, movie, function (err) {
+									if (err) { replyFn(err); return; }
+								});		
+								 */				
+							} 
+						});
 					}
 				}
 			});
@@ -195,6 +225,16 @@ function WriteMovieToActiveDatabase(self, movie, replyFn) {
 	var db = self.databaseInterface;
 	
 	db.WriteMovie(activeMovieListTableName, movie, function (err) {
+		if (err) { replyFn(err); return; }
+		replyFn(null);
+	});
+}
+
+function WriteMovieToMasterDatabase(self, movie, replyFn) {
+	var masterMovieListTableName = "MoviesMaster";
+	var db = self.databaseInterface;
+	
+	db.WriteMovie(masterMovieListTableName, movie, function (err) {
 		if (err) { replyFn(err); return; }
 		replyFn(null);
 	});
