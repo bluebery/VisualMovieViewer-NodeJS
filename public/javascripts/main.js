@@ -18,8 +18,10 @@ function InitializeFormContent() {
 			DisplayMovies();
 		}
 	});
-
-	socket.emit('GetMovieList');
+	
+	socket.on('DatabaseConnected', function () {
+		socket.emit('GetMovieList');
+	});
 }
 
 function AssociateClickHandlers() {
@@ -42,6 +44,16 @@ function AssociateClickHandlers() {
 	});
 	
 	$('#searchButton').click(function () {
+		
+		var input = document.getElementById("searchBox").value;
+		
+		var regex = '\\\\\\\\(.*?)\\\\(.*)'// match content between \\ and \, and after the \
+		var result = input.match(regex);
+		
+		if (result && result.length == 3) {
+			socket.emit('RefreshActiveDatabase', result[1], result[2], false);
+		}
+
 		if (document.getElementById("searchBox").value == 'test') {
 			socket.emit('GetMovieList');
 		}

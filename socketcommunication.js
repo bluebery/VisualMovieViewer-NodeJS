@@ -16,7 +16,9 @@ function SocketCommunication(io) {
 			if (err) { console.log('error connecting db'); return; }
 			
 			// todo: sometimes the database connection takes too long and we miss the clients' messages and fail to handle them; race condition
-			servermain.HandleEvents(socket); 
+			servermain.HandleEvents(socket);
+
+			socket.emit('DatabaseConnected');
 		});
 	});
 }

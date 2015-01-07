@@ -37,7 +37,14 @@ ServerMain.prototype.HandleEvents = function(socket) {
 
 	socket.on('RefreshActiveDatabase', function (server, directory, overloadDirectories) {
 		RefreshActiveDatabase(self, server, directory, overloadDirectories, function (err) {
+			
+			// todo: this doesn't get called because we don't actually know when the update has finished;
+			// our database writes are all kicked off asyncronously.. need to keep track of these?
+			if (err) { socket.emit('MoviesListUpdated', err, null); }
 
+			GetActiveMovieList(self, function (err, data) {
+				socket.emit('MoviesListUpdated', err, data);
+			});
 		});
 	});
 }
